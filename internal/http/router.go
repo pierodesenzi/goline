@@ -16,8 +16,7 @@ func RegisterRoutes(r *gin.Engine, taskHandler *tasks.Handler) {
 		c.JSON(http.StatusOK, gin.H{"status": "ok"})
 	})
 
-	tasksGroup := api.Group("/tasks")
-	{
-		tasksGroup.POST("", taskHandler.Create)
-	}
+	tasksGroup := api.Group("/queue")
+	tasksGroup.POST("/", taskHandler.Create)
+	tasksGroup.POST("/task", taskHandler.Enqueue)
 }

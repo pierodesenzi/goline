@@ -14,12 +14,39 @@ func NewHandler(s *Service) *Handler {
 	return &Handler{service: s}
 }
 
-type CreateTaskRequest struct {
+type CreateQueueRequest struct {
 	Name string `json:"name" binding:"required"`
 }
 
-func (h *Handler) Create(c *gin.Context) {
+type CreateTaskRequest struct {
+	Queue string `json:"queue" binding:"required"`
+	Params map[string]interface{} `json:"params" binding:"required"`
+}
+
+func (h *Handler) Enqueue(c *gin.Context) {
 	var req CreateTaskRequest
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		BadRequest(c, err)
+		return
+	}
+
+	task, err := h.service.Enqueue(req.Queue, req.Params)
+	if err != nil {
+		InternalError(c, err)
+		return
+	}
+
+	if task["status"] != "enqueued" {
+		QueueDoesNotExist(c, task["status"])
+		return
+	}
+
+	c.JSON(http.StatusCreated, task)
+	
+}
+func (h *Handler) Create(c *gin.Context) {
+	var req CreateQueueRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
 		BadRequest(c, err)
