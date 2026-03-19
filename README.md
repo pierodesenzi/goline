@@ -139,6 +139,9 @@ Response:
   "status": "enqueued"
 }
 ```
+* Note: There is **no implicit "create queue" step**.
+
+  Queues are created only using the POST /api/queue endpoint. Creating a tasks for an non existent queue will return an error.
 
 ---
 
@@ -161,14 +164,6 @@ Inspect:
 ```bash
 LRANGE queue1 0 -1
 ```
-
----
-
-## Important Notes
-
-* There is **no implicit "create queue" step**
-  Queues are created only using the POST /api/queue endpoint. Creating a tasks for an non existent queue will return an error.
-
 
 ---
 

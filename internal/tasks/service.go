@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"time"
 	"github.com/redis/go-redis/v9"
+	"github.com/google/uuid"
 )
 
 type Service struct {
@@ -31,7 +32,7 @@ func (s *Service) Create(queue string) (map[string]interface{}, error) {
 		return nil, err
 	}
 	if exists == 0 {
-		// Initialize empty list - optional in Redis, but useful for API semantics
+		// Initialize empty list with only a head entry
 		if err := s.rdb.RPush(ctx, key, "__init__").Err(); err != nil {
 			return nil, err
 		}
@@ -52,11 +53,14 @@ func (s *Service) Enqueue(queue string, params map[string]interface{}) (map[stri
 
 	key := "queue:" + queue
 
+	task_uuid = uuid.New()
+
 	payload, err := json.Marshal(params)
 	if err != nil {
 		return nil, err
 	}
 
+	payload["id"] = task_uuid
 
 	// enqueuing a task should not create a queue in Redis  
 	exists, err := s.rdb.Exists(ctx, key).Result()
@@ -78,6 +82,7 @@ func (s *Service) Enqueue(queue string, params map[string]interface{}) (map[stri
 
 	return map[string]interface{}{
 		"queue":  queue,
+		"id": task_uuid,
 		"status": "enqueued",
 	}, nil
 }
