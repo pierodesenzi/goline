@@ -53,14 +53,14 @@ func (s *Service) Enqueue(queue string, params map[string]interface{}) (map[stri
 
 	key := "queue:" + queue
 
-	task_uuid = uuid.New()
+	task_uuid := uuid.NewString()
+	params["id"] = task_uuid
 
 	payload, err := json.Marshal(params)
 	if err != nil {
 		return nil, err
 	}
 
-	payload["id"] = task_uuid
 
 	// enqueuing a task should not create a queue in Redis  
 	exists, err := s.rdb.Exists(ctx, key).Result()
@@ -71,6 +71,7 @@ func (s *Service) Enqueue(queue string, params map[string]interface{}) (map[stri
 	if exists == 0 {
 		return map[string]interface{}{
 			"queue":  "",
+			"id": "",
 			"status": "not enqueued - queue not found",
 		}, nil
 	}

@@ -2,7 +2,6 @@ package tasks
 
 import (
 	"net/http"
-
 	"github.com/gin-gonic/gin"
 )
 
@@ -37,8 +36,14 @@ func (h *Handler) Enqueue(c *gin.Context) {
 		return
 	}
 
+	status, ok := task["status"].(string)
+	if !ok {
+		c.JSON(400, gin.H{"error": "status must be a string"})
+    	return
+	}
+
 	if task["status"] != "enqueued" {
-		QueueDoesNotExist(c, task["status"])
+		QueueDoesNotExist(c, status)
 		return
 	}
 
