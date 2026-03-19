@@ -1,5 +1,6 @@
-# GoLine — Minimal Task Queue API (Gin + Redis)
-
+# GoLine
+### Minimal Task Queue API (Gin + Redis)
+---
 GoLine is a minimal HTTP API written in Go using Gin, backed by Redis.
 It demonstrates how to structure a small but production-shaped service with:
 
@@ -210,8 +211,6 @@ Redis (storage)
 ### Why no database?
 
 Redis is used directly as a queue for simplicity.
-
----
 
 ### Why separate handler and service?
 
