@@ -1,15 +1,5 @@
 # GoLine
-### Minimal Task Queue API (Gin + Redis)
----
-GoLine is a minimal HTTP API written in Go using Gin, backed by Redis.
-It demonstrates how to structure a small but production-shaped service with:
-
-* clean routing
-* handler/service separation
-* JSON validation
-* Redis-backed queues
-
-This is intentionally simple, but the structure scales.
+### Minimal Task Queue
 
 ---
 
@@ -23,20 +13,25 @@ This is intentionally simple, but the structure scales.
 
 ---
 
+## Next Steps
+
+* Create GET endpoint to inspect list
+* Create configuration file
+* Add structured logging
+* Replace `map[string]interface{}` with typed structs
+* Add persistence or retry policies
+* Add OpenAPI/Swagger
+
+---
+
 ## Project Structure
 
 ```
 /cmd/api/main.go        # entrypoint (wiring, dependencies)
 /internal/http/         # routing + middleware
 /internal/tasks/        # domain logic (handler + service)
+/provider               # external-facing components for queue consumer
 ```
-
-Separation of concerns:
-
-* **main.go** → app wiring
-* **http/** → transport layer (routes, middleware)
-* **tasks/handler** → HTTP ↔ domain translation
-* **tasks/service** → business logic (Redis interaction)
 
 ---
 
@@ -110,7 +105,7 @@ Response:
 ```json
 {
   "queue": "queue1",
-  "status": "created"
+  "status": "CREATED"
 }
 ```
 
@@ -127,7 +122,8 @@ Body:
 ```json
 {
   "queue": "queue1",
-  "task": "task1"
+  "function": "some_function",
+  "params": {"example_parameter": "abc"}
 }
 ```
 
@@ -135,8 +131,9 @@ Response:
 
 ```json
 {
+  "id": "8f249d8c-b6d0-4356-b894-3da3d193c2df",
   "queue": "queue1",
-  "status": "enqueued"
+  "status": "ENQUEUED"
 }
 ```
 * Note: There is **no implicit "create queue" step**.
@@ -152,17 +149,10 @@ Queues are implemented using Redis **lists**.
 * Key → queue name
 * Value → list of tasks
 
-Example:
-
-```bash
-RPUSH queue1 "task1"
-RPUSH queue1 "task2"
-```
-
 Inspect:
 
 ```bash
-LRANGE queue1 0 -1
+LRANGE queue:queue1 0 -1
 ```
 
 ---
@@ -186,18 +176,6 @@ Redis (storage)
 * Handlers stay thin and testable
 * Business logic is isolated from HTTP
 * Easy to extend with new endpoints
-
----
-
-## Next Steps
-
-* Add worker/consumer (BLPOP / BRPOP)
-* Create GET endpoint to inspect list
-* Create configuration file
-* Add request IDs + structured logging
-* Replace `map[string]interface{}` with typed structs
-* Add persistence or retry policies
-* Add OpenAPI/Swagger
 
 ---
 
