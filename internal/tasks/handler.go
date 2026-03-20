@@ -22,6 +22,7 @@ type CreateTaskRequest struct {
 	Params map[string]interface{} `json:"params" binding:"required"`
 }
 
+
 func (h *Handler) Enqueue(c *gin.Context) {
 	var req CreateTaskRequest
 
