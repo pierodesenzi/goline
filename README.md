@@ -192,4 +192,8 @@ Redis is used directly as a queue for simplicity.
 
 To avoid mixing HTTP concerns with business logic and to make the code easier to scale and test.
 
+### Is AI being used to develop GoLine?
+
+ChatGPT is being used to help with documentation and comments, but no code in this repo was written with AI.
+
 ---
