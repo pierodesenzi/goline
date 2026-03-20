@@ -1,4 +1,4 @@
-# GoLine
+# <img src="gl.png" alt="Alt Text" width="40" height="100"> GoLine
 GoLine is a lightweight task queue system written in Go, backed by Redis.
 
 It provides a simple way to enqueue tasks via HTTP and process them asynchronously with workers. The focus is on clarity, minimalism, and explicit control over execution.
