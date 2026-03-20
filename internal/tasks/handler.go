@@ -27,7 +27,6 @@ type CreateTaskRequest struct {
 func (h *Handler) Enqueue(c *gin.Context) {
 	var req CreateTaskRequest
 
-
 	if err := c.ShouldBindJSON(&req); err != nil {
 		BadRequest(c, err)
 		return
@@ -39,14 +38,8 @@ func (h *Handler) Enqueue(c *gin.Context) {
 		return
 	}
 
-	status, ok := task["status"].(string)
-	if !ok {
-		c.JSON(400, gin.H{"error": "status must be a string"})
-    	return
-	}
-
-	if task["status"] == "QUEUE_DOES_NOT_EXIST" {
-		QueueDoesNotExist(c, status)
+	if task.Status == "QUEUE_DOES_NOT_EXIST" {
+		QueueDoesNotExist(c, task.Status)
 		return
 	}
 
@@ -61,16 +54,16 @@ func (h *Handler) Create(c *gin.Context) {
 		return
 	}
 
-	task, err := h.service.Create(req.Name)
+	queue, err := h.service.Create(req.Name)
 	if err != nil {
 		InternalError(c, err)
 		return
 	}
 
-	if task["status"] == "ALREADY_EXISTS" {
-		c.JSON(http.StatusConflict, task)
+	if queue.Status == "ALREADY_EXISTS" {
+		c.JSON(http.StatusConflict, queue)
 		return
 	}
 
-	c.JSON(http.StatusCreated, task)
+	c.JSON(http.StatusCreated, queue)
 }

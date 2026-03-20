@@ -18,7 +18,18 @@ func NewService(rdb *redis.Client) *Service {
 	}
 }
 
-func (s *Service) Create(queue string) (map[string]interface{}, error) {
+type CreateResponse struct {
+	Queue	string	`json:"queue"`
+	Status	string	`json:"status"`
+}
+
+type EnqueueResponse struct {
+	Id		string	`json:"id"`
+	Queue	string	`json:"queue"`
+	Status	string	`json:"status"`
+}
+
+func (s *Service) Create(queue string) (CreateResponse, error) {
 	// Initializes an empty queue
 
 	// Fails if operation takes more than 2 seconds to complete
@@ -29,28 +40,28 @@ func (s *Service) Create(queue string) (map[string]interface{}, error) {
 
 	exists, err := s.rdb.Exists(ctx, key).Result()
 	if err != nil {
-		return nil, err
+		return CreateResponse{}, err
 	}
 	if exists == 0 {
 		// Initialize empty list with only a head entry
 		if err := s.rdb.Set(ctx, key, 1, 0).Err(); err != nil {
-			return nil, err
+			return CreateResponse{}, err
 		}
 	} else {
 		// Cannot recreate existing queue
-		return map[string]interface{}{
-			"queue":  queue,
-			"status": "ALREADY_EXISTS",
+		return CreateResponse{
+			Queue:  queue,
+			Status: "ALREADY_EXISTS",
 		}, nil
 	}
 
-	return map[string]interface{}{
-		"queue":  queue,
-		"status": "CREATED",
+	return CreateResponse{
+		Queue:  queue,
+		Status: "CREATED",
 	}, nil
 }
 
-func (s *Service) Enqueue(queue string, function string, params map[string]any) (map[string]interface{}, error) {
+func (s *Service) Enqueue(queue string, function string, params map[string]any) (EnqueueResponse, error) {
 	// Pushes a task into the queue
 
 	// Fails if operation takes more than 2 seconds to complete
@@ -60,14 +71,14 @@ func (s *Service) Enqueue(queue string, function string, params map[string]any) 
 	// enqueuing a task should not create a queue in Redis  
 	exists, err := s.rdb.Exists(ctx, "active_queues:" + queue).Result()
 	if err != nil {
-		return nil, err
+		return EnqueueResponse{}, err
 	}
 
 	if exists == 0 {
-		return map[string]interface{}{
-			"queue":  "",
-			"id": "",
-			"status": "QUEUE_DOES_NOT_EXIST",
+		return EnqueueResponse{
+			Id:  "",
+			Queue: "",
+			Status: "QUEUE_DOES_NOT_EXIST",
 		}, nil
 	}
 
@@ -80,20 +91,20 @@ func (s *Service) Enqueue(queue string, function string, params map[string]any) 
 		"params": params,
 	}
 
-	// convert task to string format
+	// convert task to bytes format
 	payload, err := json.Marshal(task)
 	if err != nil {
-		return nil, err
+		return EnqueueResponse{}, err
 	}
 
 	// FIFO queue: push to the right
 	if err := s.rdb.RPush(ctx, key, payload).Err(); err != nil {
-		return nil, err
+		return EnqueueResponse{}, err
 	}
 
-	return map[string]interface{}{
-		"queue":  queue,
-		"id": task_uuid,
-		"status": "ENQUEUED",
+	return EnqueueResponse{
+		Id: task_uuid,
+		Queue:  queue,
+		Status: "ENQUEUED",
 	}, nil
 }

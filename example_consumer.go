@@ -38,11 +38,17 @@ func main() {
 		Addr: "localhost:6379",
 	})
 
-	worker := provider.NewProvider(rdb, "queue1")
+	worker := provider.NewProvider(rdb, "queue5")
 	ctx := context.Background()
 	for {
 		task, _ := worker.Next(ctx)
-		handlers[task.Function](task.Params)
+		function, ok := handlers[task.Function]
+		if !ok { // If the function does not exist on handlers
+			// TODO: send to DLQ
+			continue
+		}
+
+		function(task.Params)
 	}
 
 	// TODO: implement Ack() for success case
