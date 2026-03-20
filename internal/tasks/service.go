@@ -29,9 +29,8 @@ type EnqueueResponse struct {
 	Status	string	`json:"status"`
 }
 
+// Enqueue signals the creation of an empty queue
 func (s *Service) Create(queue string) (CreateResponse, error) {
-	// Initializes an empty queue
-
 	// Fails if operation takes more than 2 seconds to complete
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
@@ -43,7 +42,7 @@ func (s *Service) Create(queue string) (CreateResponse, error) {
 		return CreateResponse{}, err
 	}
 	if exists == 0 {
-		// Initialize empty list with only a head entry
+		// Create signal that lists exists
 		if err := s.rdb.Set(ctx, key, 1, 0).Err(); err != nil {
 			return CreateResponse{}, err
 		}
@@ -61,8 +60,8 @@ func (s *Service) Create(queue string) (CreateResponse, error) {
 	}, nil
 }
 
+// Enqueue pushes a task into the queue
 func (s *Service) Enqueue(queue string, function string, params map[string]any) (EnqueueResponse, error) {
-	// Pushes a task into the queue
 
 	// Fails if operation takes more than 2 seconds to complete
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)

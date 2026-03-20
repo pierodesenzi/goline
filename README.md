@@ -69,6 +69,8 @@ Server runs on:
 http://localhost:8080
 ```
 
+To see how a consumer is expected to feed on the queue, check *example_consumer.go*.
+
 ---
 
 ## Endpoints

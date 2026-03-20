@@ -21,7 +21,7 @@ func printContent(raw json.RawMessage) error {
 		return err
 	}
 
-    fmt.Printf("The content is %s", p)
+    fmt.Printf("The content is %s\n", p)
 
 	return nil
 }
@@ -48,10 +48,12 @@ func main() {
 			continue
 		}
 
-		function(task.Params)
+		err := function(task.Params)
+		if err != nil {
+			// TODO: send to DLQ
+			continue
+		} else {
+			worker.Ack(ctx, task.Id)
+		}
 	}
-
-	// TODO: implement Ack() for success case
-	// q.Ack(ctx, raw)
-
 }
