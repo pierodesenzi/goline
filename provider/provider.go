@@ -13,17 +13,16 @@ type Provider struct {
 	processingQueue string
 }
 
-
 type Task struct {
-	queue	string
-	id		string
-	params	map[string]any
+	Id			string
+	Function	string
+	Params		json.RawMessage
 }
 
 func NewProvider(rdb *redis.Client, queue string) *Provider {
 	return &Provider{
 		rdb:             rdb,
-		queue:           queue,
+		queue:           "queue:" + queue,
 		processingQueue: fmt.Sprintf("%s:processing", queue),
 	}
 }

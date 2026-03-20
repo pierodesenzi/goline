@@ -18,20 +18,22 @@ type CreateQueueRequest struct {
 }
 
 type CreateTaskRequest struct {
-	Queue string `json:"queue" binding:"required"`
-	Params map[string]interface{} `json:"params" binding:"required"`
+	Queue string					`json:"queue" binding:"required"`
+	Function string					`json:"function" binding:"required"`
+	Params map[string]interface{}	`json:"params" binding:"required"`
 }
 
 
 func (h *Handler) Enqueue(c *gin.Context) {
 	var req CreateTaskRequest
 
+
 	if err := c.ShouldBindJSON(&req); err != nil {
 		BadRequest(c, err)
 		return
 	}
 
-	task, err := h.service.Enqueue(req.Queue, req.Params)
+	task, err := h.service.Enqueue(req.Queue, req.Function, req.Params)
 	if err != nil {
 		InternalError(c, err)
 		return
@@ -43,7 +45,7 @@ func (h *Handler) Enqueue(c *gin.Context) {
     	return
 	}
 
-	if task["status"] != "enqueued" {
+	if task["status"] == "QUEUE_DOES_NOT_EXIST" {
 		QueueDoesNotExist(c, status)
 		return
 	}
@@ -62,6 +64,11 @@ func (h *Handler) Create(c *gin.Context) {
 	task, err := h.service.Create(req.Name)
 	if err != nil {
 		InternalError(c, err)
+		return
+	}
+
+	if task["status"] == "ALREADY_EXISTS" {
+		c.JSON(http.StatusConflict, task)
 		return
 	}
 

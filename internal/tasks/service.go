@@ -25,7 +25,7 @@ func (s *Service) Create(queue string) (map[string]interface{}, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 
-	key := "queue:" + queue
+	key := "active_queues:" + queue
 
 	exists, err := s.rdb.Exists(ctx, key).Result()
 	if err != nil {
@@ -33,37 +33,32 @@ func (s *Service) Create(queue string) (map[string]interface{}, error) {
 	}
 	if exists == 0 {
 		// Initialize empty list with only a head entry
-		if err := s.rdb.RPush(ctx, key, "__init__").Err(); err != nil {
+		if err := s.rdb.Set(ctx, key, 1, 0).Err(); err != nil {
 			return nil, err
 		}
+	} else {
+		// Cannot recreate existing queue
+		return map[string]interface{}{
+			"queue":  queue,
+			"status": "ALREADY_EXISTS",
+		}, nil
 	}
 
 	return map[string]interface{}{
 		"queue":  queue,
-		"status": "created",
+		"status": "CREATED",
 	}, nil
 }
 
-func (s *Service) Enqueue(queue string, params map[string]interface{}) (map[string]interface{}, error) {
+func (s *Service) Enqueue(queue string, function string, params map[string]any) (map[string]interface{}, error) {
 	// Pushes a task into the queue
 
 	// Fails if operation takes more than 2 seconds to complete
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 
-	key := "queue:" + queue
-
-	task_uuid := uuid.NewString()
-	params["id"] = task_uuid
-
-	payload, err := json.Marshal(params)
-	if err != nil {
-		return nil, err
-	}
-
-
 	// enqueuing a task should not create a queue in Redis  
-	exists, err := s.rdb.Exists(ctx, key).Result()
+	exists, err := s.rdb.Exists(ctx, "active_queues:" + queue).Result()
 	if err != nil {
 		return nil, err
 	}
@@ -72,8 +67,23 @@ func (s *Service) Enqueue(queue string, params map[string]interface{}) (map[stri
 		return map[string]interface{}{
 			"queue":  "",
 			"id": "",
-			"status": "not enqueued - queue not found",
+			"status": "QUEUE_DOES_NOT_EXIST",
 		}, nil
+	}
+
+	// generating task JSON
+	key := "queue:" + queue
+	task_uuid := uuid.NewString()
+	task := map[string]any{
+		"id": task_uuid,
+		"function": function,
+		"params": params,
+	}
+
+	// convert task to string format
+	payload, err := json.Marshal(task)
+	if err != nil {
+		return nil, err
 	}
 
 	// FIFO queue: push to the right
@@ -84,6 +94,6 @@ func (s *Service) Enqueue(queue string, params map[string]interface{}) (map[stri
 	return map[string]interface{}{
 		"queue":  queue,
 		"id": task_uuid,
-		"status": "enqueued",
+		"status": "ENQUEUED",
 	}, nil
 }
