@@ -1,10 +1,10 @@
 package provider
 
 import (
-	"github.com/redis/go-redis/v9"
-	"fmt"
 	"context"
 	"encoding/json"
+	"fmt"
+	"github.com/redis/go-redis/v9"
 )
 
 // Provider coordinates task consumption using Redis.
@@ -63,12 +63,11 @@ func (p *Provider) Ack(ctx context.Context, id string) error {
 	return p.rdb.Unlink(ctx, p.processingQueue+":"+id).Err()
 }
 
-
 // DLQ:
 type DLQItem struct {
-	Task  *Task           `json:"task,omitempty"`  // present if parsing succeeded
-	Raw   json.RawMessage `json:"raw,omitempty"`   // original payload if parsing failed
-	Error string          `json:"error"`           // why it failed
+	Task  *Task           `json:"task,omitempty"` // present if parsing succeeded
+	Raw   json.RawMessage `json:"raw,omitempty"`  // original payload if parsing failed
+	Error string          `json:"error"`          // why it failed
 }
 
 // SendToDLQ stores a failed item (parsed or raw) in the DLQ.

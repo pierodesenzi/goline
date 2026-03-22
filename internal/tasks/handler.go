@@ -1,8 +1,8 @@
 package tasks
 
 import (
-	"net/http"
 	"github.com/gin-gonic/gin"
+	"net/http"
 )
 
 type Handler struct {
@@ -18,11 +18,10 @@ type CreateQueueRequest struct {
 }
 
 type CreateTaskRequest struct {
-	Queue string					`json:"queue" binding:"required"`
-	Function string					`json:"function" binding:"required"`
-	Params map[string]interface{}	`json:"params" binding:"required"`
+	Queue    string                 `json:"queue" binding:"required"`
+	Function string                 `json:"function" binding:"required"`
+	Params   map[string]interface{} `json:"params" binding:"required"`
 }
-
 
 func (h *Handler) Enqueue(c *gin.Context) {
 	var req CreateTaskRequest
@@ -44,7 +43,7 @@ func (h *Handler) Enqueue(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, task)
-	
+
 }
 func (h *Handler) Create(c *gin.Context) {
 	var req CreateQueueRequest

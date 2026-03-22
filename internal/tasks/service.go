@@ -16,7 +16,7 @@ type Service struct {
 
 func NewService(rdb *redis.Client) *Service {
 	return &Service{
-		rdb: rdb,  // injecting the Redis client
+		rdb: rdb, // injecting the Redis client
 	}
 }
 
@@ -47,13 +47,13 @@ func (s *Service) Create(queue string) (CreateResponse, error) {
 		return CreateResponse{}, err
 	}
 
-	if exists == 0 {  // queue does not exist, so create its existence signal
+	if exists == 0 { // queue does not exist, so create its existence signal
 		if err := s.rdb.Set(ctx, key, 1, 0).Err(); err != nil {
 			log.Printf("Create failed setting key for queue=%s: %v", queue, err)
 			return CreateResponse{}, err
 		}
 		log.Printf("Queue created: %s", queue)
-	} else {  // queue does exist, don't recreate it
+	} else { // queue does exist, don't recreate it
 		log.Printf("Create skipped, queue already exists: %s", queue)
 		return CreateResponse{
 			Queue:  queue,
@@ -80,7 +80,7 @@ func (s *Service) Enqueue(queue string, function string, params map[string]any) 
 		return EnqueueResponse{}, err
 	}
 
-	if exists == 0 {   // creating a task for a non existing queue should not create it
+	if exists == 0 { // creating a task for a non existing queue should not create it
 		log.Printf("Enqueue rejected, queue does not exist: %s", queue)
 		return EnqueueResponse{
 			Id:     "",

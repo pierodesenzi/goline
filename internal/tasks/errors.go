@@ -8,7 +8,7 @@ import (
 
 func BadRequest(c *gin.Context, err error) {
 	c.JSON(http.StatusBadRequest, gin.H{
-		"error": "invalid_request",
+		"error":   "invalid_request",
 		"message": err.Error(),
 	})
 }
