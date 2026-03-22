@@ -19,7 +19,6 @@ func Load() Config {
 	}
 }
 
-// small helper to avoid repetition
 func getEnv(key, fallback string) string {
 	if value, exists := os.LookupEnv(key); exists {
 		return value
