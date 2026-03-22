@@ -19,8 +19,6 @@ It provides a simple way to enqueue tasks via HTTP and process them asynchronous
 ## Next Steps
 
 * Create GET endpoint to inspect list
-* Create configuration file
-* Add structured logging
 * Add persistence or retry policies
 * Add OpenAPI/Swagger
 
