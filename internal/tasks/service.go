@@ -3,9 +3,11 @@ package tasks
 import (
 	"context"
 	"encoding/json"
+	"log"
 	"time"
-	"github.com/redis/go-redis/v9"
+
 	"github.com/google/uuid"
+	"github.com/redis/go-redis/v9"
 )
 
 type Service struct {
@@ -19,18 +21,20 @@ func NewService(rdb *redis.Client) *Service {
 }
 
 type CreateResponse struct {
-	Queue	string	`json:"queue"`
-	Status	string	`json:"status"`
+	Queue  string `json:"queue"`
+	Status string `json:"status"`
 }
 
 type EnqueueResponse struct {
-	Id		string	`json:"id"`
-	Queue	string	`json:"queue"`
-	Status	string	`json:"status"`
+	Id     string `json:"id"`
+	Queue  string `json:"queue"`
+	Status string `json:"status"`
 }
 
-// Enqueue signals the creation of an empty queue
+// Create signals the creation of an empty queue
 func (s *Service) Create(queue string) (CreateResponse, error) {
+	log.Printf("Create called for queue=%s", queue)
+
 	// Fails if operation takes more than 2 seconds to complete
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
@@ -39,15 +43,18 @@ func (s *Service) Create(queue string) (CreateResponse, error) {
 
 	exists, err := s.rdb.Exists(ctx, key).Result()
 	if err != nil {
+		log.Printf("Create failed checking existence for queue=%s: %v", queue, err)
 		return CreateResponse{}, err
 	}
-	if exists == 0 {
-		// Create signal that lists exists
+
+	if exists == 0 {  // queue does not exist, so create its existence signal
 		if err := s.rdb.Set(ctx, key, 1, 0).Err(); err != nil {
+			log.Printf("Create failed setting key for queue=%s: %v", queue, err)
 			return CreateResponse{}, err
 		}
-	} else {
-		// Cannot recreate existing queue
+		log.Printf("Queue created: %s", queue)
+	} else {  // queue does exist, don't recreate it
+		log.Printf("Create skipped, queue already exists: %s", queue)
 		return CreateResponse{
 			Queue:  queue,
 			Status: "ALREADY_EXISTS",
@@ -62,47 +69,52 @@ func (s *Service) Create(queue string) (CreateResponse, error) {
 
 // Enqueue pushes a task into the queue
 func (s *Service) Enqueue(queue string, function string, params map[string]any) (EnqueueResponse, error) {
+	log.Printf("Enqueue called for queue=%s function=%s", queue, function)
 
-	// Fails if operation takes more than 2 seconds to complete
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 
-	// enqueuing a task should not create a queue in Redis  
-	exists, err := s.rdb.Exists(ctx, "active_queues:" + queue).Result()
+	exists, err := s.rdb.Exists(ctx, "active_queues:"+queue).Result()
 	if err != nil {
+		log.Printf("Enqueue failed checking queue existence for queue=%s: %v", queue, err)
 		return EnqueueResponse{}, err
 	}
 
-	if exists == 0 {
+	if exists == 0 {   // creating a task for a non existing queue should not create it
+		log.Printf("Enqueue rejected, queue does not exist: %s", queue)
 		return EnqueueResponse{
-			Id:  "",
-			Queue: "",
+			Id:     "",
+			Queue:  "",
 			Status: "QUEUE_DOES_NOT_EXIST",
 		}, nil
 	}
 
-	// generating task JSON
 	key := "queue:" + queue
-	task_uuid := uuid.NewString()
+	taskUUID := uuid.NewString()
+
+	// creating task map to store in Redis
 	task := map[string]any{
-		"id": task_uuid,
+		"id":       taskUUID,
 		"function": function,
-		"params": params,
+		"params":   params,
 	}
 
-	// convert task to bytes format
 	payload, err := json.Marshal(task)
 	if err != nil {
+		log.Printf("Enqueue failed marshaling task for queue=%s: %v", queue, err)
 		return EnqueueResponse{}, err
 	}
 
-	// FIFO queue: push to the right
+	// pushing to the queue
 	if err := s.rdb.RPush(ctx, key, payload).Err(); err != nil {
+		log.Printf("Enqueue failed pushing to queue=%s: %v", queue, err)
 		return EnqueueResponse{}, err
 	}
+
+	log.Printf("Task enqueued: queue=%s id=%s", queue, taskUUID)
 
 	return EnqueueResponse{
-		Id: task_uuid,
+		Id:     taskUUID,
 		Queue:  queue,
 		Status: "ENQUEUED",
 	}, nil

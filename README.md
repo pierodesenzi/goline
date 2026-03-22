@@ -146,6 +146,28 @@ Response:
 
 ---
 
+## Consumer
+
+Package `provider` exposes the primitives required to build a consumer.
+
+It defines:
+
+- `Task`: representation of a task as stored in Redis
+- `Provider`: handles task consumption and acknowledgment
+- `DLQItem`: represents a failed task, either as a parsed `Task` or raw payload
+
+- __NewProvider__ _(rdb *redis.Client, queue string)_: Creates and returns a Provider address.
+
+Methods of the provider:
+
+- __Next__ _(ctx context.Context)_: Pops a task from the queue of the provider and sets it as "processing". Returns a Task object, a []string with raw data, and any error.
+
+- __Ack__ _(ctx context.Context, id string)_: Unsets a task as processing, identifying by id. Returns any error.
+
+- __SendToDLQ__ _(ctx context.Context, key string, item DLQItem)_: Stores a DLQItem in a queue.
+
+To see these components in action, please refer to `example_consumer.go`.
+
 ## Redis Data Model
 
 Queues are implemented using Redis **lists**.
