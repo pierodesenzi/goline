@@ -1,7 +1,7 @@
 package main
 
 import (
-    "pierodesenzi/goline/provider"
+    "github.com/pierodesenzi/goline/provider"
 	"github.com/redis/go-redis/v9"
 	"encoding/json"
 

@@ -3,7 +3,7 @@ package http
 import (
 	"net/http"
 
-	"pierodesenzi/goline/internal/tasks"
+	"github.com/pierodesenzi/goline/internal/tasks"
 
 	"github.com/gin-gonic/gin"
 )

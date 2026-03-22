@@ -6,9 +6,9 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
 
-	"pierodesenzi/goline/internal/config"
-	apphttp "pierodesenzi/goline/internal/http"
-	"pierodesenzi/goline/internal/tasks"
+	"github.com/pierodesenzi/goline/internal/config"
+	apphttp "github.com/pierodesenzi/goline/internal/http"
+	"github.com/pierodesenzi/goline/internal/tasks"
 )
 
 func main() {
