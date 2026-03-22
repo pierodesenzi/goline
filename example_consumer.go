@@ -38,20 +38,34 @@ func main() {
 		Addr: "localhost:6379",
 	})
 
-	worker := provider.NewProvider(rdb, "queue5")
+	queue := "queue5"
+
+	worker := provider.NewProvider(rdb, queue)
 	ctx := context.Background()
 	for {
-		task, _ := worker.Next(ctx)
+		task, raw, err := worker.Next(ctx)
+		if err != nil {  // invalid payload
+			worker.SendToDLQ(ctx, queue + ":dlq:invalid", provider.DLQItem{
+				Raw: json.RawMessage(raw[1]),
+				Error: "invalid payload",
+			})
+			continue
+		}
 		function, ok := handlers[task.Function]
 		if !ok { // If the function does not exist on handlers
-			// TODO: send to DLQ
+			worker.SendToDLQ(ctx, queue + ":dlq:function_not_found", provider.DLQItem{
+				Task: task,
+				Error: "function not present",
+			})
 			continue
 		}
 
-		err := function(task.Params)
+		err = function(task.Params)
 		if err != nil {
-			// TODO: send to DLQ
-			continue
+			worker.SendToDLQ(ctx, queue + ":dlq:error_executing", provider.DLQItem{
+				Task: task,
+				Error: "error during function execution",
+			})
 		} else {
 			worker.Ack(ctx, task.Id)
 		}
