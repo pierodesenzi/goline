@@ -1,4 +1,4 @@
-module pierodesenzi/goline
+module github.com/pierodesenzi/goline
 
 go 1.25.0
 
