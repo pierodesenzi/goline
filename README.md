@@ -9,9 +9,9 @@ It provides a simple way to enqueue tasks via HTTP and process them asynchronous
 
 * Healthcheck endpoint
 * Create and enqueue tasks
-* DLQ API
 * Redis-backed queue using lists
-* Clean project structure (cmd + internal)
+* API for consumer workers, including completion acknnowledgement API
+* DLQ API
 * Middleware for logging and error handling
 
 ---
@@ -21,6 +21,7 @@ It provides a simple way to enqueue tasks via HTTP and process them asynchronous
 * Create GET endpoint to inspect list
 * Add persistence or retry policies
 * Add OpenAPI/Swagger
+* Unit and integration tests
 
 ---
 
