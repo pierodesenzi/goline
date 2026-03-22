@@ -1,3 +1,5 @@
+[![Go Report Card](https://goreportcard.com/badge/github.com/pierodesenzi/goline)](https://goreportcard.com/report/github.com/pierodesenzi/goline)
+
 # <img src="gl.png" alt="Alt Text" width="40" height="100"> GoLine
 GoLine is a lightweight task queue system written in Go, backed by Redis.
 
