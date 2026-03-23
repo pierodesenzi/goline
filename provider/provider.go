@@ -14,13 +14,6 @@ type Provider struct {
 	processingQueue string
 }
 
-// Task represents a unit of work fetched from Redis.
-type Task struct {
-	Id       string
-	Function string
-	Params   json.RawMessage // Opaque JSON payload passed to the function
-}
-
 func NewProvider(rdb *redis.Client, queue string) *Provider {
 	return &Provider{
 		rdb:             rdb,
@@ -61,13 +54,6 @@ func (p *Provider) Next(ctx context.Context) (*Task, []string, error) {
 // its in-flight marker. Uses UNLINK (non-blocking delete).
 func (p *Provider) Ack(ctx context.Context, id string) error {
 	return p.rdb.Unlink(ctx, p.processingQueue+":"+id).Err()
-}
-
-// DLQ:
-type DLQItem struct {
-	Task  *Task           `json:"task,omitempty"` // present if parsing succeeded
-	Raw   json.RawMessage `json:"raw,omitempty"`  // original payload if parsing failed
-	Error string          `json:"error"`          // why it failed
 }
 
 // SendToDLQ stores a failed item (parsed or raw) in the DLQ.
