@@ -79,3 +79,12 @@ func (p *Provider) SendToDLQ(ctx context.Context, key string, item DLQItem) erro
 
 	return p.rdb.RPush(ctx, key, data).Err()
 }
+
+// CheckQueue gets the tasks currently in the queue
+func (p *Provider) CheckQueue(ctx context.Context) ([]string, error) {
+	tasks, err := p.rdb.LRange(ctx, p.queue, 0, -1).Result()
+	if err != nil {
+		return nil, err
+	}
+	return tasks, nil
+}

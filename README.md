@@ -20,7 +20,6 @@ It provides a simple way to enqueue tasks via HTTP and process them asynchronous
 
 ## Next Steps
 
-* Create GET endpoint to inspect list
 * Add persistence or retry policies
 * Add OpenAPI/Swagger
 * Unit and integration tests
@@ -114,6 +113,24 @@ Response:
 }
 ```
 
+### Check Tasks in Queue
+
+```
+GET /api/queue?queue=queue1
+```
+
+Response:
+
+```json
+{
+  "tasks": [
+    "{\"function\":\"some_function\",\"id\":\"623c9341-04df-4083-a81b-c76126bad290\",\"params\":{}}",
+
+    "{\"function\":\"some_function\",\"id\":\"96756a28-3881-40fb-89b1-a188248d50a1\",\"params\":{}}"
+  ]
+}
+```
+
 ---
 
 ### Create Task on Queue
@@ -166,6 +183,8 @@ Methods of the provider:
 - __Ack__ _(ctx context.Context, id string)_: Unsets a task as processing, identifying by id. Returns any error.
 
 - __SendToDLQ__ _(ctx context.Context, key string, item DLQItem)_: Stores a DLQItem in a queue.
+
+- __CheckQueue__ _(ctx context.Context)_: Retrieves all the tasks for the queue in that Provider{}. Returns list of strings and any error.
 
 To see these components in action, please refer to `example_consumer.go`.
 

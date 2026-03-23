@@ -66,3 +66,24 @@ func (h *Handler) Create(c *gin.Context) {
 
 	c.JSON(http.StatusCreated, queue)
 }
+
+// CheckQueue gets the tasks currently in the queue
+func (h *Handler) CheckQueue(c *gin.Context) {
+	queue := c.Query("queue") // returns "" if not present
+
+	if queue == "" {
+		c.JSON(400, gin.H{"error": "queue is required"})
+		return
+	}
+
+	response, err := h.service.CheckQueue(queue)
+	if err != nil {
+		c.JSON(500, gin.H{
+			"error": "could not check queue",
+		})
+	}
+
+	c.JSON(200, gin.H{
+		"tasks": response.Tasks,
+	})
+}

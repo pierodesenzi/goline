@@ -12,7 +12,7 @@ import (
 
 // define functions
 type printContentParams struct {
-	Function string `json:"function"`
+	B int `json:"b"`
 }
 
 func printContent(raw json.RawMessage) error {
@@ -20,8 +20,7 @@ func printContent(raw json.RawMessage) error {
 	if err := json.Unmarshal(raw, &p); err != nil {
 		return err
 	}
-
-	fmt.Printf("The content is %s\n", p)
+	fmt.Printf("The content is %d\n", p.B)
 
 	return nil
 }
@@ -38,7 +37,7 @@ func main() {
 		Addr: "localhost:6379",
 	})
 
-	queue := "queue5"
+	queue := "queue1"
 
 	worker := provider.NewProvider(rdb, queue)
 	ctx := context.Background()
@@ -69,5 +68,6 @@ func main() {
 		} else {
 			worker.Ack(ctx, task.Id)
 		}
+
 	}
 }

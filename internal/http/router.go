@@ -17,6 +17,7 @@ func RegisterRoutes(r *gin.Engine, taskHandler *tasks.Handler) {
 	})
 
 	tasksGroup := api.Group("/queue")
-	tasksGroup.POST("/", taskHandler.Create)      // create queue
+	tasksGroup.GET("", taskHandler.CheckQueue)    // check existing
+	tasksGroup.POST("", taskHandler.Create)       // create queue
 	tasksGroup.POST("/task", taskHandler.Enqueue) // create task
 }

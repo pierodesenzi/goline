@@ -31,6 +31,11 @@ type EnqueueResponse struct {
 	Status string `json:"status"`
 }
 
+type CheckResponse struct {
+	Tasks  []string `json:"tasks"`
+	Status string   `json:"status"`
+}
+
 // Create signals the creation of an empty queue
 func (s *Service) Create(queue string) (CreateResponse, error) {
 	log.Printf("Create called for queue=%s", queue)
@@ -117,5 +122,34 @@ func (s *Service) Enqueue(queue string, function string, params map[string]any) 
 		Id:     taskUUID,
 		Queue:  queue,
 		Status: "ENQUEUED",
+	}, nil
+}
+
+func (s *Service) CheckQueue(queue string) (CheckResponse, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	// check if queue exists first
+	exists, err := s.rdb.Exists(ctx, "active_queues:"+queue).Result()
+	if err != nil {
+		log.Printf("Failed checking queue existence for queue=%s: %v", queue, err)
+		return CheckResponse{}, err
+	}
+
+	if exists == 0 { // checking non existing queue
+		log.Printf("Queue does not exist: %s", queue)
+		return CheckResponse{
+			Tasks:  []string{},
+			Status: "QUEUE_DOES_NOT_EXIST",
+		}, nil
+	}
+
+	tasks, err := s.rdb.LRange(ctx, "queue:"+queue, 0, -1).Result()
+	if err != nil {
+		return CheckResponse{}, err
+	}
+	return CheckResponse{
+		Tasks:  tasks,
+		Status: "OK",
 	}, nil
 }
