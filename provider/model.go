@@ -1,5 +1,7 @@
 package provider
 
+import "encoding/json"
+
 // Task represents a unit of work fetched from Redis.
 type Task struct {
 	Id       string

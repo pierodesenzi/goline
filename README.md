@@ -15,6 +15,7 @@ It provides a simple way to enqueue tasks via HTTP and process them asynchronous
 * API for consumer workers, including completion acknnowledgement API
 * DLQ API
 * Middleware for logging and error handling
+* Tests
 
 ---
 
@@ -223,6 +224,10 @@ Redis (storage)
 * Business logic is isolated from HTTP
 * Easy to extend with new endpoints
 
+### Testing 
+
+On this version of GoLine, the tests are focusing on files that contain actual logic, and not boilerplate code and simple delegation, like `routes.go` and `handler.go`
+
 ---
 
 ## FAQ
@@ -237,6 +242,10 @@ To avoid mixing HTTP concerns with business logic and to make the code easier to
 
 ### Is AI being used to develop GoLine?
 
-ChatGPT is being used to help with documentation and comments, but no code in this repo was written with AI.
+ChatGPT is being used to help with:
+* documentation and comments
+* unit and integration tests
+
+No core code in this repo was written with AI.
 
 ---
